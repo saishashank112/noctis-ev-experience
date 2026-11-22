@@ -1,0 +1,37 @@
+# ── Raw source frames (too large for git) ────────────────────────────────────
+clip1frames/
+clip2frames/
+clip3frames/
+flowclipframes/
+Five ways to drive the night/
+
+# ── Original source assets ────────────────────────────────────────────────────
+clip-1.mp4
+clip-2.mp4
+clip-3.mp4
+flowclip.mp4
+car-img.png
+e1.png
+e2.png
+k1.png
+k2.png
+k3.png
+k4.png
+last.png
+
+# ── Utility / build scripts ───────────────────────────────────────────────────
+convert_frames.py
+convert_dismantle.py
+take_all_screenshots.py
+
+# ── Temp dirs ────────────────────────────────────────────────────────────────
+temp_test/
+temp_chrome_profile/
+__pycache__/
+*.pyc
+*.pyo
+
+# ── OS cruft ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,1662 @@
+/* ==========================================================================
+   NOCTIS — DESIGN SYSTEM & SCROLLYTELLING STYLES
+   Mood: A city in total blackout at night; the car is the only light.
+   Strict Style Rules:
+   - Flat solid colors only: NO gradients (no linear, radial, conic, masks).
+   - NO glassmorphism (no backdrop-filter, no blur, no frosted glass).
+   - NO glows, NO drop shadows, NO rounded bubbly cards, NO emojis.
+   - 1px hairlines, photography, and precise typography.
+   ========================================================================== */
+
+:root {
+  /* Design Tokens */
+  --asphalt: #07080A;
+  --graphite: #121418;
+  --fog: #8A8F98;
+  --bone: #EDEAE4;
+  --xenon: #CFE3FF;
+  --xenon-dim: rgba(207, 227, 255, 0.4);
+  --taillight: #E1251B;
+  --hairline: rgba(237, 234, 228, 0.12);
+  --hairline-solid: #202328;
+
+  /* Typography */
+  --font-display: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Easing */
+  --ease-site: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 0.25s var(--ease-site);
+  --transition-medium: 0.6s var(--ease-site);
+  --transition-slow: 0.9s var(--ease-site);
+}
+
+/* ==========================================================================
+   Base & Reset
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: var(--asphalt);
+  color: var(--bone);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  overflow-x: clip; /* Do NOT use overflow: hidden as it breaks sticky */
+}
+
+body {
+  background-color: var(--asphalt);
+  color: var(--bone);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: clip;
+}
+
+/* Hide native cursor on desktop fine pointer */
+@media (pointer: fine) {
+  body:not(.reduced-motion) {
+    cursor: none;
+  }
+  body:not(.reduced-motion) a,
+  body:not(.reduced-motion) button,
+  body:not(.reduced-motion) [role="button"],
+  body:not(.reduced-motion) input {
+    cursor: none;
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  display: inline-block;
+}
+
+button {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+/* ==========================================================================
+   Film-Grain Overlay
+   Fixed offscreen noise tile, shifted ~8 times/sec, 3-4% opacity, no vignette
+   ========================================================================== */
+.grain-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.035;
+}
+
+/* ==========================================================================
+   Custom Cursor ("The Headlight")
+   6px solid xenon dot inside 28px ring (1px xenon stroke, no blur, no glow)
+   Morphs into a 44x2px horizontal light bar with mono label on hover
+   ========================================================================== */
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1000;
+  transform: translate(-50%, -50%);
+  display: none;
+  will-change: transform, width, height;
+}
+
+@media (pointer: fine) {
+  body:not(.reduced-motion) .custom-cursor {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.cursor-ring {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--xenon);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.25s var(--ease-site), transform 0.25s var(--ease-site);
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--xenon);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.25s var(--ease-site);
+}
+
+.cursor-bar {
+  width: 0;
+  height: 2px;
+  background-color: var(--xenon);
+  opacity: 0;
+  transition: width 0.25s var(--ease-site), opacity 0.2s var(--ease-site), background-color 0.12s ease;
+}
+
+.cursor-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--xenon);
+  margin-left: 12px;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.25s var(--ease-site), transform 0.25s var(--ease-site);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Cursor Hovering Active Interactive Element */
+.custom-cursor.is-hovering .cursor-ring {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.6);
+}
+
+.custom-cursor.is-hovering .cursor-dot {
+  opacity: 0;
+}
+
+.custom-cursor.is-hovering .cursor-bar {
+  width: 44px;
+  opacity: 1;
+}
+
+.custom-cursor.is-hovering .cursor-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Cursor on Mousedown (Brighten for 120ms) */
+.custom-cursor.is-active .cursor-bar,
+.custom-cursor.is-active .cursor-dot,
+.custom-cursor.is-active .cursor-ring {
+  background-color: #FFFFFF;
+  border-color: #FFFFFF;
+}
+
+/* ==========================================================================
+   Preloader
+   Solid #07080A, NOCTIS wordmark in display font, thin xenon line expanding
+   outward from center, mono counter 000-100.
+   ========================================================================== */
+.preloader {
+  position: fixed;
+  inset: 0;
+  background-color: var(--asphalt);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s var(--ease-site), visibility 0.8s;
+}
+
+.preloader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.preloader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.preloader-wordmark {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: clamp(32px, 5vw, 64px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.preloader-track {
+  width: 200px;
+  height: 1px;
+  background-color: var(--hairline);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preloader-bar {
+  position: absolute;
+  height: 1px;
+  background-color: var(--xenon);
+  width: 0%;
+  transition: width 0.1s linear, background-color 0.15s ease;
+}
+
+.preloader-bar.flash {
+  background-color: #FFFFFF;
+  height: 2px;
+}
+
+.preloader-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: var(--fog);
+}
+
+/* ==========================================================================
+   Site Navigation
+   Fixed, transparent, mix-blend-mode: difference. Hides down, reveals up.
+   ========================================================================== */
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 500;
+  mix-blend-mode: difference;
+  transition: transform 0.5s var(--ease-site);
+  will-change: transform;
+}
+
+.site-nav.is-hidden {
+  transform: translateY(-100%);
+}
+
+.nav-brand {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 400;
+  font-size: 20px;
+  letter-spacing: 0.12em;
+  color: var(--bone);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.nav-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--bone);
+  position: relative;
+  padding: 4px 0;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--xenon);
+  transition: width 0.3s var(--ease-site);
+}
+
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  width: 100%;
+}
+
+.nav-link-reserve {
+  color: var(--xenon);
+}
+
+/* ==========================================================================
+   Typography & Reveal Utilities
+   Line-by-line reveal: lines inside overflow-hidden mask slide up from 100%
+   ========================================================================== */
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fog);
+  display: block;
+}
+
+.reveal-line-wrap {
+  overflow: hidden;
+  display: block;
+}
+
+.reveal-line {
+  display: block;
+  transform: translateY(100%);
+  transition: transform var(--transition-slow);
+  will-change: transform;
+}
+
+.is-revealed .reveal-line,
+.active .reveal-line {
+  transform: translateY(0);
+}
+
+/* Stagger line reveals */
+.reveal-line-wrap:nth-child(1) .reveal-line { transition-delay: 0.00s; }
+.reveal-line-wrap:nth-child(2) .reveal-line { transition-delay: 0.08s; }
+.reveal-line-wrap:nth-child(3) .reveal-line { transition-delay: 0.16s; }
+.reveal-line-wrap:nth-child(4) .reveal-line { transition-delay: 0.24s; }
+
+/* ==========================================================================
+   Pinned Scrollytelling Architecture (Hero & Dismantle)
+   Tall wrapper (height from config), sticky stage top: 0, 100vh/100svh.
+   Never overflow: hidden on ancestors!
+   ========================================================================== */
+.scroll-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.hero-wrapper {
+  height: 600vh;
+}
+
+.dismantle-wrapper {
+  height: 350vh;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden; /* inside stage only, stage itself is sticky */
+  background-color: var(--asphalt);
+}
+
+.scrolly-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Pinned Progress Bar (1px Xenon at bottom) */
+.pinned-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--hairline);
+  z-index: 40;
+}
+
+.pinned-progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: var(--xenon);
+  will-change: width;
+}
+
+/* Stage Blackout Overlay (Hero fade to solid black over last 5%) */
+.stage-blackout {
+  position: absolute;
+  inset: 0;
+  background-color: var(--asphalt);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 30;
+  transition: opacity 0.1s linear;
+}
+
+/* ==========================================================================
+   SECTION 1 — HERO
+   ========================================================================== */
+.hero-hud {
+  position: absolute;
+  left: 40px;
+  bottom: 60px;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--fog);
+}
+
+.hud-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hud-chapter {
+  color: var(--bone);
+  font-weight: 500;
+}
+
+.hud-tick {
+  display: inline-block;
+  width: 6px;
+  height: 2px;
+  background-color: var(--taillight);
+}
+
+.hud-unit {
+  color: var(--fog);
+  font-size: 9px;
+}
+
+/* Hero Text Chapters (Placed in empty sky, never over the car) */
+.hero-chapters-container {
+  position: absolute;
+  top: 140px;
+  left: 40px;
+  right: 40px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.hero-chapter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s var(--ease-site), visibility 0.5s;
+  pointer-events: none;
+}
+
+.hero-chapter.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Chapter 1 */
+.hero-ch-1 .hero-title {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: clamp(48px, 9vw, 130px);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-transform: uppercase;
+}
+
+.hero-ch-1 .hero-subline {
+  font-family: var(--font-body);
+  font-size: clamp(16px, 1.8vw, 20px);
+  color: var(--fog);
+  margin-top: 16px;
+  letter-spacing: 0.01em;
+}
+
+.hero-scroll-hint {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 40px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--xenon);
+}
+
+.hint-line {
+  display: block;
+  width: 48px;
+  height: 1px;
+  background-color: var(--xenon);
+  animation: pulse-line 2.2s infinite ease-in-out;
+}
+
+@keyframes pulse-line {
+  0%, 100% { opacity: 0.2; transform: scaleX(0.7); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+/* Chapters 2 & 3 */
+.hero-statement {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: clamp(36px, 6vw, 84px);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-transform: uppercase;
+}
+
+/* Chapter 4 */
+.hero-model-title {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 400;
+  font-size: clamp(48px, 8vw, 110px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-transform: uppercase;
+}
+
+.hero-specs-row {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 1.2vw, 13px);
+  letter-spacing: 0.14em;
+  color: var(--fog);
+  margin-top: 18px;
+}
+
+.hero-link {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--xenon);
+  margin-top: 24px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--xenon);
+}
+
+/* ==========================================================================
+   SECTION 2 — STATEMENT (Engineering, 100vh)
+   Word by word scroll opacity reveal from 15% to 100%
+   ========================================================================== */
+.statement-section {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;
+  background-color: var(--asphalt);
+  position: relative;
+  z-index: 10;
+}
+
+.statement-container {
+  max-width: 1100px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.statement-label {
+  margin-bottom: 8px;
+}
+
+.statement-text {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: clamp(32px, 5.5vw, 76px);
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.statement-word {
+  display: inline-block;
+  opacity: 0.15;
+  transition: opacity 0.2s var(--ease-site);
+  will-change: opacity;
+}
+
+/* ==========================================================================
+   SECTION 3 — DISMANTLE (Pinned, ~350vh)
+   Sticky canvas with dismantle frames + 4 Callouts after 70%
+   ========================================================================== */
+.dismantle-header {
+  position: absolute;
+  top: 120px;
+  left: 40px;
+  z-index: 25;
+}
+
+.dismantle-title {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: clamp(32px, 4.5vw, 64px);
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-transform: uppercase;
+}
+
+.dismantle-callouts {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.callout-item {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s var(--ease-site), transform 0.5s var(--ease-site);
+}
+
+.callout-item.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.callout-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--xenon);
+  transform: translate(-50%, -50%);
+}
+
+.callout-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.callout-line {
+  stroke: var(--hairline-solid);
+  stroke-width: 1px;
+  fill: none;
+}
+
+.callout-card {
+  position: absolute;
+  background-color: var(--graphite);
+  border: 1px solid var(--hairline);
+  padding: 14px 18px;
+  min-width: 240px;
+  max-width: 300px;
+}
+
+.callout-code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fog);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.callout-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--xenon);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.callout-desc {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--bone);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   SECTION 4 — LINEUP (Hover Accordion, 100vh)
+   5 vertical slides: 1 open (~52vw), 4 closed (~12vw). GT-E open by default.
+   ========================================================================== */
+.lineup-section {
+  width: 100%;
+  min-height: 100vh;
+  padding: 100px 40px 60px;
+  background-color: var(--asphalt);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+  border-top: 1px solid var(--hairline);
+}
+
+.lineup-header {
+  margin-bottom: 40px;
+}
+
+.lineup-title {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: clamp(32px, 4.5vw, 64px);
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.lineup-accordion {
+  width: 100%;
+  flex: 1;
+  min-height: 600px;
+  display: flex;
+  border: 1px solid var(--hairline);
+  position: relative;
+  background-color: var(--asphalt);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s var(--ease-site), transform 0.8s var(--ease-site);
+}
+
+.lineup-accordion.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Individual Slide (Button for keyboard accessibility) */
+.lineup-slide {
+  position: relative;
+  flex: 1 1 0%;
+  height: 100%;
+  min-height: 600px;
+  border-right: 1px solid var(--hairline);
+  overflow: hidden;
+  background-color: var(--asphalt);
+  transition: flex 0.7s var(--ease-site);
+  will-change: flex;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.lineup-slide:last-child {
+  border-right: none;
+}
+
+/* Active / Open Slide (~52vw vs ~12vw) */
+.lineup-slide.is-open {
+  flex: 4.5 1 0%;
+}
+
+/* Closed Slide State */
+.slide-closed-view {
+  position: absolute;
+  inset: 0;
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 5;
+  transition: opacity 0.4s var(--ease-site);
+  pointer-events: none;
+}
+
+.slide-number-closed {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--fog);
+}
+
+.slide-name-rotated {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--bone);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-transform: uppercase;
+}
+
+.slide-closed-img-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  opacity: 0.25;
+  filter: grayscale(100%);
+  transition: opacity 0.5s var(--ease-site), filter 0.5s var(--ease-site);
+}
+
+.slide-closed-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right 60%; /* Cropped tight on front light bar */
+}
+
+/* When open, hide closed elements */
+.lineup-slide.is-open .slide-closed-view {
+  opacity: 0;
+}
+
+.lineup-slide.is-open .slide-closed-img-wrap {
+  opacity: 0;
+}
+
+/* Open Slide Content */
+.slide-open-view {
+  position: absolute;
+  inset: 0;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease-site);
+}
+
+.lineup-slide.is-open .slide-open-view {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Open Top: Model Name & Number */
+.slide-open-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.slide-open-name {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: clamp(36px, 5vw, 72px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-transform: uppercase;
+}
+
+.slide-open-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--fog);
+}
+
+/* Shared Floor Line at 72% height */
+.slide-car-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.slide-car-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transform: translateX(-6%);
+  opacity: 0;
+  transition: transform 0.7s var(--ease-site), opacity 0.5s var(--ease-site);
+  will-change: transform, opacity;
+}
+
+.lineup-slide.is-open .slide-car-img {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Floor line hairline across open stage at 72% */
+.slide-floor-line {
+  position: absolute;
+  top: 72%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--hairline);
+  z-index: 3;
+}
+
+/* Open Bottom: Details below car */
+.slide-open-bottom {
+  position: relative;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.slide-tagline {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--fog);
+}
+
+.slide-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 500px;
+  padding: 14px 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spec-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fog);
+}
+
+.spec-val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--bone);
+  font-weight: 500;
+}
+
+.slide-swatches-and-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slide-swatches {
+  display: flex;
+  gap: 10px;
+}
+
+.color-swatch {
+  width: 12px;
+  height: 12px;
+  border: none;
+  cursor: pointer;
+  transition: outline 0.15s ease;
+}
+
+.color-swatch.active {
+  outline: 1px solid var(--bone);
+  outline-offset: 2px;
+}
+
+.slide-config-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--xenon);
+  text-transform: uppercase;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--xenon);
+}
+
+/* Keyboard focus states */
+.lineup-slide:focus-visible {
+  outline: 1px solid var(--xenon);
+  outline-offset: -1px;
+}
+
+/* ==========================================================================
+   SECTION 5 — RESERVE (100vh)
+   Black, centred: "Drive the night.", 1 line body, thin xenon outline button
+   Hover: fills with solid xenon, label turns --asphalt, 2px red tick at left
+   ========================================================================== */
+.reserve-section {
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--asphalt);
+  padding: 60px 40px;
+  position: relative;
+  z-index: 10;
+  border-top: 1px solid var(--hairline);
+  overflow: hidden;
+}
+
+/* Background Cinematic Fleet Panoramic Image */
+.reserve-bg-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.reserve-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  opacity: 0.85;
+  transition: opacity 0.5s ease;
+}
+
+.reserve-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: var(--asphalt);
+  opacity: 0.20;
+}
+
+.reserve-container {
+  max-width: 900px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.reserve-badge {
+  color: var(--xenon);
+  margin-bottom: 4px;
+}
+
+.reserve-title {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: clamp(40px, 7vw, 100px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-transform: uppercase;
+}
+
+.reserve-body {
+  font-family: var(--font-body);
+  font-size: clamp(15px, 1.4vw, 18px);
+  color: var(--fog);
+  max-width: 54ch;
+  line-height: 1.6;
+}
+
+/* Telemetry Data Strip */
+.reserve-specs-strip {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 16px 32px;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  margin: 12px 0 16px;
+  background-color: var(--graphite);
+}
+
+.reserve-spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.reserve-btn-wrap {
+  margin-top: 16px;
+}
+
+.reserve-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 16px 36px;
+  border: 1px solid var(--xenon);
+  background-color: transparent;
+  color: var(--xenon);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: background-color 0.25s var(--ease-site), color 0.25s var(--ease-site), border-color 0.25s var(--ease-site);
+}
+
+.reserve-btn .btn-tick {
+  width: 0;
+  height: 2px;
+  background-color: var(--taillight);
+  margin-right: 0;
+  transition: width 0.25s var(--ease-site), margin-right 0.25s var(--ease-site);
+}
+
+.reserve-btn:hover,
+.reserve-btn:focus-visible {
+  background-color: var(--xenon);
+  color: var(--asphalt);
+  border-color: var(--xenon);
+}
+
+.reserve-btn:hover .btn-tick,
+.reserve-btn:focus-visible .btn-tick {
+  width: 6px;
+  margin-right: 12px;
+}
+
+/* ==========================================================================
+   Reserve Modal Dialog
+   Flat graphite background, 1px hairline border, zero blur, zero glows
+   ========================================================================== */
+.reserve-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s var(--ease-site);
+}
+
+.reserve-modal.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--asphalt);
+  opacity: 0.92;
+}
+
+.modal-dialog {
+  position: relative;
+  z-index: 2;
+  background-color: var(--graphite);
+  border: 1px solid var(--hairline);
+  padding: 40px;
+  width: 90%;
+  max-width: 540px;
+  text-align: left;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fog);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  border: 1px solid var(--hairline);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: var(--bone);
+  border-color: var(--xenon);
+}
+
+.modal-header {
+  margin-bottom: 28px;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  color: var(--bone);
+  text-transform: uppercase;
+  margin: 6px 0 8px;
+}
+
+.modal-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--fog);
+}
+
+.reserve-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fog);
+  text-transform: uppercase;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 12px 14px;
+  background-color: var(--asphalt);
+  border: 1px solid var(--hairline);
+  color: var(--bone);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: var(--xenon);
+}
+
+.form-select option {
+  background-color: var(--graphite);
+  color: var(--bone);
+}
+
+.modal-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px;
+  margin-top: 8px;
+  background-color: var(--xenon);
+  color: var(--asphalt);
+  border: 1px solid var(--xenon);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.modal-submit-btn .btn-tick {
+  width: 6px;
+  height: 2px;
+  background-color: var(--taillight);
+}
+
+.modal-submit-btn:hover {
+  background-color: #FFFFFF;
+  border-color: #FFFFFF;
+}
+
+/* Confirmation Card */
+.reserve-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+  text-align: center;
+  align-items: center;
+}
+
+.reserve-confirmation.is-hidden {
+  display: none;
+}
+
+.confirm-badge {
+  color: var(--xenon);
+}
+
+.confirm-title {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  color: var(--bone);
+  text-transform: uppercase;
+}
+
+.confirm-body {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--fog);
+  max-width: 44ch;
+  line-height: 1.5;
+}
+
+.confirm-chassis-id {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  color: var(--bone);
+  padding: 10px 20px;
+  background-color: var(--asphalt);
+  border: 1px solid var(--hairline);
+  margin: 12px 0;
+}
+
+.confirm-close-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--xenon);
+  padding: 10px 24px;
+  border: 1px solid var(--xenon);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.confirm-close-btn:hover {
+  background-color: var(--xenon);
+  color: var(--asphalt);
+}
+
+/* ==========================================================================
+   FOOTER
+   Hairline top border, wordmark, 3 columns mono links, copyright
+   ========================================================================== */
+.site-footer {
+  width: 100%;
+  background-color: var(--asphalt);
+  border-top: 1px solid var(--hairline);
+  padding: 80px 40px 40px;
+  position: relative;
+  z-index: 10;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 60px;
+  padding-bottom: 60px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.footer-brand {
+  max-width: 320px;
+}
+
+.footer-wordmark {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 300;
+  font-size: 28px;
+  letter-spacing: 0.12em;
+  color: var(--bone);
+  text-transform: uppercase;
+  display: block;
+}
+
+.footer-tagline {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--fog);
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+.footer-links-grid {
+  display: flex;
+  gap: 60px;
+  flex-wrap: wrap;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer-col-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--fog);
+}
+
+.footer-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-list a {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--bone);
+  transition: color 0.2s ease;
+}
+
+.footer-list a:hover,
+.footer-list a:focus-visible {
+  color: var(--xenon);
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-top: 32px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--fog);
+}
+
+/* ==========================================================================
+   Mobile & Responsive Adjustments (< 768px)
+   - Stack lineup slides vertically as 72px rows; tapping expands to show car
+   - Cover fit vs contain fit rules handled in JS canvas draw
+   ========================================================================== */
+@media (max-width: 767px) {
+  .site-nav {
+    padding: 0 20px;
+    height: 64px;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+
+  .hero-chapters-container {
+    left: 20px;
+    right: 20px;
+    top: 100px;
+  }
+
+  .hero-hud {
+    left: 20px;
+    bottom: 40px;
+  }
+
+  .statement-section,
+  .lineup-section,
+  .site-footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .reserve-section {
+    padding: 80px 20px 60px;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .reserve-bg-img {
+    object-fit: contain;
+    object-position: center bottom;
+    opacity: 0.90;
+  }
+
+  .reserve-specs-strip {
+    gap: 16px;
+    padding: 12px 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Mobile Lineup: Vertical Accordion (72px collapsed rows) */
+  .lineup-accordion {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .lineup-slide {
+    width: 100%;
+    height: 72px;
+    min-height: 72px;
+    flex: none;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+    transition: height 0.6s var(--ease-site);
+  }
+
+  .lineup-slide.is-open {
+    height: 520px;
+    flex: none;
+  }
+
+  .slide-closed-view {
+    flex-direction: row;
+    padding: 0 20px;
+    align-items: center;
+    width: 100%;
+    height: 72px;
+  }
+
+  .slide-name-rotated {
+    writing-mode: horizontal-tb;
+    transform: none;
+    font-size: 14px;
+  }
+
+  .slide-open-view {
+    padding: 24px 20px;
+  }
+
+  .slide-specs-grid {
+    gap: 12px;
+  }
+
+  .dismantle-header {
+    left: 20px;
+    top: 90px;
+  }
+
+  .callout-card {
+    min-width: 180px;
+    padding: 10px 12px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion Accessibility
+   When prefers-reduced-motion is active:
+   - No pinning (wrapper heights become auto/100vh)
+   - Static frames per chapter (0%, 35%, 65%, 100% for hero; first & last for dismantle)
+   - Keep normal cursor
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-wrapper,
+  .dismantle-wrapper {
+    height: auto !important;
+  }
+
+  .stage {
+    position: relative !important;
+    height: 100vh !important;
+  }
+
+  .reveal-line {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .hero-chapter {
+    position: relative !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    margin-bottom: 60px;
+  }
+
+  .custom-cursor {
+    display: none !important;
+  }
+
+  body {
+    cursor: auto !important;
+  }
+
+  .grain-overlay {
+    display: none;
+  }
+}
