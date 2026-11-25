@@ -40,12 +40,48 @@
   <!-- Fixed Transparent Navigation (Hides on downscroll, reveals on upscroll) -->
   <header id="site-nav" class="site-nav" role="banner">
     <a href="#" class="nav-brand" data-cursor="MENU" aria-label="NOCTIS Home">NOCTIS</a>
+
+    <!-- Desktop Nav Links -->
     <nav class="nav-links" aria-label="Main Navigation">
       <a href="#models" class="nav-link" data-cursor="VIEW">MODELS</a>
       <a href="#technology" class="nav-link" data-cursor="VIEW">TECHNOLOGY</a>
       <a href="#reserve" class="nav-link nav-link-reserve" data-cursor="RESERVE">RESERVE</a>
     </nav>
+
+    <!-- Mobile Hamburger Toggle -->
+    <button
+      id="nav-hamburger"
+      class="nav-hamburger"
+      aria-label="Open navigation menu"
+      aria-expanded="false"
+      aria-controls="mobile-nav-panel"
+      type="button"
+    >
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
   </header>
+
+  <!-- Mobile Navigation Panel (full-screen overlay) -->
+  <div id="mobile-nav-panel" class="mobile-nav-panel" aria-hidden="true" role="dialog" aria-label="Mobile Navigation">
+    <nav class="mobile-nav-links" aria-label="Mobile Navigation">
+      <a href="#models" class="mobile-nav-link" data-mobile-nav>
+        <span class="mobile-nav-num">01</span>
+        <span class="mobile-nav-name">MODELS</span>
+      </a>
+      <a href="#technology" class="mobile-nav-link" data-mobile-nav>
+        <span class="mobile-nav-num">02</span>
+        <span class="mobile-nav-name">TECHNOLOGY</span>
+      </a>
+      <a href="#reserve" class="mobile-nav-link mobile-nav-link-reserve" data-mobile-nav>
+        <span class="mobile-nav-num">03</span>
+        <span class="mobile-nav-name">RESERVE</span>
+      </a>
+    </nav>
+    <div class="mobile-nav-footer">
+      <span class="mobile-nav-tagline">The night is yours.</span>
+    </div>
+  </div>
 
   <main id="main-content">
     <!-- SECTION 1: HERO (Pinned, ~600vh) -->

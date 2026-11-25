@@ -25,6 +25,8 @@
     preloaderBar: document.getElementById('preloader-bar'),
     preloaderCount: document.getElementById('preloader-count'),
     nav: document.getElementById('site-nav'),
+    navHamburger: document.getElementById('nav-hamburger'),
+    mobileNavPanel: document.getElementById('mobile-nav-panel'),
     grainCanvas: document.getElementById('grain-canvas'),
     cursor: document.getElementById('cursor'),
     // Hero
@@ -635,6 +637,97 @@
   }
 
   /* ==========================================================================
+     8c. Mobile Navigation — Hamburger Toggle
+     ========================================================================== */
+  function initMobileNav() {
+    const hamburger = document.getElementById('nav-hamburger');
+    const panel = document.getElementById('mobile-nav-panel');
+    if (!hamburger || !panel) return;
+
+    let isOpen = false;
+
+    const openMenu = () => {
+      isOpen = true;
+      hamburger.classList.add('is-open');
+      hamburger.setAttribute('aria-expanded', 'true');
+      panel.classList.add('is-open');
+      panel.setAttribute('aria-hidden', 'false');
+      DOM.body.style.overflow = 'hidden'; // lock scroll
+    };
+
+    const closeMenu = () => {
+      isOpen = false;
+      hamburger.classList.remove('is-open');
+      hamburger.setAttribute('aria-expanded', 'false');
+      panel.classList.remove('is-open');
+      panel.setAttribute('aria-hidden', 'true');
+      DOM.body.style.overflow = '';
+    };
+
+    hamburger.addEventListener('click', () => {
+      isOpen ? closeMenu() : openMenu();
+    });
+
+    // Close when any nav link is tapped
+    panel.querySelectorAll('[data-mobile-nav]').forEach((link) => {
+      link.addEventListener('click', () => {
+        closeMenu();
+      });
+    });
+
+    // Close on Escape key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen) closeMenu();
+    });
+  }
+
+  /* ==========================================================================
+     8d. Mobile Dismantle Callout List
+     Renders callouts as a vertical list below the dismantle canvas on mobile
+     ========================================================================== */
+  function initMobileCalloutList() {
+    const isMobile = window.innerWidth < CFG.mobileBreakpoint;
+    if (!isMobile) return;
+
+    // Insert a mobile callout list directly after the dismantle stage
+    const dismantleWrapper = DOM.dismantleWrapper;
+    if (!dismantleWrapper) return;
+
+    const list = document.createElement('div');
+    list.className = 'mobile-callout-list';
+    list.id = 'mobile-callout-list';
+
+    CFG.dismantle.callouts.forEach((co) => {
+      const item = document.createElement('div');
+      item.className = 'mobile-callout-item';
+      item.id = `mobile-callout-${co.id}`;
+      item.innerHTML = `
+        <span class="mobile-callout-num">${co.code}</span>
+        <div class="mobile-callout-body">
+          <span class="callout-label">${co.label}</span>
+          <p class="callout-desc">${co.description}</p>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+
+    dismantleWrapper.after(list);
+  }
+
+  function updateMobileCallouts(progress) {
+    if (window.innerWidth >= CFG.mobileBreakpoint) return;
+    CFG.dismantle.callouts.forEach((co) => {
+      const el = document.getElementById(`mobile-callout-${co.id}`);
+      if (!el) return;
+      if (progress >= co.triggerProgress) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+    });
+  }
+
+  /* ==========================================================================
      8b. Section 5: Reserve Section & Modal
      ========================================================================== */
   function initReserveSection() {
@@ -720,6 +813,18 @@
     } else {
       DOM.nav.classList.remove('is-hidden');
     }
+
+    // Auto-close mobile menu when user scrolls (intentional navigation)
+    const hamburger = document.getElementById('nav-hamburger');
+    const panel = document.getElementById('mobile-nav-panel');
+    if (hamburger && panel && panel.classList.contains('is-open') && Math.abs(currentScrollY - lastScrollY) > 60) {
+      hamburger.classList.remove('is-open');
+      hamburger.setAttribute('aria-expanded', 'false');
+      panel.classList.remove('is-open');
+      panel.setAttribute('aria-hidden', 'true');
+      DOM.body.style.overflow = '';
+    }
+
     lastScrollY = currentScrollY;
   }
 
@@ -866,6 +971,7 @@
       if (dismantleScroller) {
         dismantleScroller.update();
         updateDismantleUI(dismantleScroller.smoothedProgress);
+        updateMobileCallouts(dismantleScroller.smoothedProgress);
       }
 
       updateStatementSection();
@@ -894,6 +1000,8 @@
     initReserveSection();
     initFilmGrain();
     initCustomCursor();
+    initMobileNav();
+    initMobileCalloutList();
 
     if (prefersReducedMotion) {
       initReducedMotion();
