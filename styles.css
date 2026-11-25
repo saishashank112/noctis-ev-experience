@@ -282,7 +282,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  z-index: 500;
+  z-index: 1003; /* above mobile-nav-panel (1001) so logo stays visible */
   mix-blend-mode: difference;
   transition: transform 0.5s var(--ease-site);
   will-change: transform;
@@ -1520,7 +1520,7 @@ button {
   background: none;
   border: none;
   cursor: pointer;
-  z-index: 600;
+  z-index: 1002; /* above mobile-nav-panel (1001) */
   position: relative;
 }
 
@@ -1547,7 +1547,7 @@ button {
   position: fixed;
   inset: 0;
   background-color: var(--asphalt);
-  z-index: 490;
+  z-index: 1001; /* above grain overlay (999) and nav (500) */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1929,11 +1929,6 @@ button {
     gap: 10px;
   }
 
-  /* Dismantle header */
-  .dismantle-header {
-    left: 20px;
-    top: 76px;
-  }
 }
 
 /* ── Standard Mobile (375–430px) ────────────────────────────────────────── */
